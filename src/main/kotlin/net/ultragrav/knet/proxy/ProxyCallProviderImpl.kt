@@ -1,6 +1,7 @@
 package net.ultragrav.knet.proxy
 
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.ExperimentalSerializationApi
 import net.ultragrav.knet.ProxyCallProvider
@@ -29,8 +30,11 @@ class ProxyCallProviderImpl(private val caller: ProxyCaller) : ProxyCallProvider
         val call = PacketProxyCall(id, interfaceName, functionName, args)
         caller.sendCall(call)
 
-        return@withContext suspendCoroutine { cont ->
+        return@withContext suspendCancellableCoroutine { cont ->
             responseHandlers[id] = cont
+            cont.invokeOnCancellation {
+                responseHandlers.remove(id)
+            }
         }
     }
 
