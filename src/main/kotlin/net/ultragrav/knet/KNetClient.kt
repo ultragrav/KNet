@@ -37,7 +37,8 @@ class KNetClient(val host: SocketAddress) : ProxyCaller, ProxyRegistrar {
                         Lz4FrameDecoder(),
                         PacketDecoder(),
                         PacketEncoder(),
-                        PacketHandler(this@KNetClient)
+                        PacketHandler(this@KNetClient),
+                        callProvider.DisconnectHandler()
                     )
                 }
             })

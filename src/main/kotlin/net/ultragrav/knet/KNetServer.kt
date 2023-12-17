@@ -40,7 +40,8 @@ class KNetServer(val port: Int) : ProxyRegistrar {
                             PacketDecoder(),
                             PacketEncoder(),
                             PacketHandler(serverConnection),
-                            DisconnectHandler(serverConnection)
+                            DisconnectHandler(serverConnection),
+                            serverConnection.callProvider.DisconnectHandler()
                         )
                         connected.add(serverConnection)
                     }
