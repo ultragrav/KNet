@@ -8,7 +8,8 @@ import io.netty.channel.socket.SocketChannel
 import io.netty.channel.socket.nio.NioSocketChannel
 import io.netty.handler.codec.compression.Lz4FrameDecoder
 import io.netty.handler.codec.compression.Lz4FrameEncoder
-import net.ultragrav.knet.packet.PacketProxyCall
+import net.ultragrav.knet.packet.PacketHandler
+import net.ultragrav.knet.packet.packets.PacketProxyCall
 import net.ultragrav.knet.packet.encoding.PacketDecoder
 import net.ultragrav.knet.packet.encoding.PacketEncoder
 import net.ultragrav.knet.proxy.CallHandlerMap
@@ -36,7 +37,7 @@ class KNetClient(val host: SocketAddress) : ProxyCaller, ProxyRegistrar {
                         Lz4FrameDecoder(),
                         PacketDecoder(),
                         PacketEncoder(),
-                        NetHandler(this@KNetClient)
+                        PacketHandler(this@KNetClient)
                     )
                 }
             })

@@ -1,4 +1,4 @@
-package net.ultragrav.knet.packet
+package net.ultragrav.knet.packet.packets
 
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable

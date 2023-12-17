@@ -4,8 +4,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.ExperimentalSerializationApi
 import net.ultragrav.knet.ProxyCallProvider
-import net.ultragrav.knet.packet.PacketProxyCall
-import net.ultragrav.knet.packet.PacketResponse
+import net.ultragrav.knet.packet.packets.PacketProxyCall
+import net.ultragrav.knet.packet.packets.PacketResponse
 import java.util.concurrent.atomic.AtomicLong
 import kotlin.coroutines.Continuation
 import kotlin.coroutines.resume
@@ -13,7 +13,7 @@ import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
 
 @OptIn(ExperimentalSerializationApi::class)
-class ProxyCallProviderImpl(val caller: ProxyCaller) : ProxyCallProvider {
+class ProxyCallProviderImpl(private val caller: ProxyCaller) : ProxyCallProvider {
     private val id = AtomicLong(0)
 
     // TODO: Handle cleanup in case of disconnect

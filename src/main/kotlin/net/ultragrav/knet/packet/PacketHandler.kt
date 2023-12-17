@@ -1,4 +1,4 @@
-package net.ultragrav.knet
+package net.ultragrav.knet.packet
 
 import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.SimpleChannelInboundHandler
@@ -6,11 +6,12 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import net.ultragrav.knet.packet.PacketProxyCall
-import net.ultragrav.knet.packet.PacketResponse
+import net.ultragrav.knet.KNet
+import net.ultragrav.knet.packet.packets.PacketProxyCall
+import net.ultragrav.knet.packet.packets.PacketResponse
 import net.ultragrav.knet.proxy.ProxyCaller
 
-class NetHandler(private val caller: ProxyCaller) : SimpleChannelInboundHandler<Any>() {
+internal class PacketHandler(private val caller: ProxyCaller) : SimpleChannelInboundHandler<Any>() {
     override fun channelRead0(ctx: ChannelHandlerContext, msg: Any) {
         when (msg) {
             is PacketProxyCall -> {

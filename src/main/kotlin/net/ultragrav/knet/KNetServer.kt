@@ -10,6 +10,7 @@ import io.netty.channel.socket.SocketChannel
 import io.netty.channel.socket.nio.NioServerSocketChannel
 import io.netty.handler.codec.compression.Lz4FrameDecoder
 import io.netty.handler.codec.compression.Lz4FrameEncoder
+import net.ultragrav.knet.packet.PacketHandler
 import net.ultragrav.knet.packet.encoding.PacketDecoder
 import net.ultragrav.knet.packet.encoding.PacketEncoder
 import net.ultragrav.knet.proxy.CallHandlerMap
@@ -38,7 +39,7 @@ class KNetServer(val port: Int) : ProxyRegistrar {
                             Lz4FrameDecoder(),
                             PacketDecoder(),
                             PacketEncoder(),
-                            NetHandler(serverConnection),
+                            PacketHandler(serverConnection),
                             DisconnectHandler(serverConnection)
                         )
                         connected.add(serverConnection)

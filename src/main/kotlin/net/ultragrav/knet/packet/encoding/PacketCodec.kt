@@ -4,8 +4,8 @@ import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.decodeFromByteArray
 import kotlinx.serialization.encodeToByteArray
 import kotlinx.serialization.protobuf.ProtoBuf
-import net.ultragrav.knet.packet.PacketProxyCall
-import net.ultragrav.knet.packet.PacketResponse
+import net.ultragrav.knet.packet.packets.PacketProxyCall
+import net.ultragrav.knet.packet.packets.PacketResponse
 
 @OptIn(ExperimentalSerializationApi::class)
 object PacketCodec {
