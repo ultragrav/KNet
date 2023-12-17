@@ -11,11 +11,12 @@ import net.ultragrav.knet.ProxiedInterface
 
 @OptIn(KspExperimental::class)
 class KNetProcessor(val environment: SymbolProcessorEnvironment) : SymbolProcessor {
-    val visitor = ClassVisitor()
+    private val visitor = ClassVisitor()
 
     override fun process(resolver: Resolver): List<KSAnnotated> {
         resolver.getSymbolsWithAnnotation(ProxiedInterface::class.qualifiedName!!)
-            .filterIsInstance<KSClassDeclaration>().forEach { it.accept(visitor, Unit) }
+            .filterIsInstance<KSClassDeclaration>()
+            .forEach { it.accept(visitor, Unit) }
         return emptyList()
     }
 
@@ -39,7 +40,7 @@ class KNetProcessor(val environment: SymbolProcessorEnvironment) : SymbolProcess
 
             val functions = StringBuilder()
             val callHandlerEntries = StringBuilder()
-            toImplement.forEachIndexed { index, function ->
+            toImplement.forEach { function ->
                 val args =
                     function.parameters.joinToString(", ") { "${it.name!!.asString()}: ${it.type.resolve().declaration.qualifiedName!!.asString()}" }
                 val args2 = function.parameters.joinToString(", ") {
@@ -66,10 +67,12 @@ class KNetProcessor(val environment: SymbolProcessorEnvironment) : SymbolProcess
             val classStr = """
                 |package ${classDeclaration.packageName.asString()}     
                 |
+                |import kotlinx.serialization.ExperimentalSerializationApi
                 |import kotlinx.serialization.decodeFromByteArray
                 |import kotlinx.serialization.encodeToByteArray
                 |import kotlinx.serialization.protobuf.ProtoBuf
                 |
+                |@OptIn(ExperimentalSerializationApi::class)
                 |class ${classDeclaration.simpleName.asString()}Proxy(val provider: net.ultragrav.knet.ProxyCallProvider) : ${classDeclaration.qualifiedName!!.asString()} {
                 |${functions.toString().prependIndent("    ")}
                 |}
@@ -87,10 +90,12 @@ class KNetProcessor(val environment: SymbolProcessorEnvironment) : SymbolProcess
             val callHandlerStr = """
                 |package ${classDeclaration.packageName.asString()}
                 |
+                |import kotlinx.serialization.ExperimentalSerializationApi
                 |import kotlinx.serialization.decodeFromByteArray
                 |import kotlinx.serialization.encodeToByteArray
                 |import kotlinx.serialization.protobuf.ProtoBuf
                 |
+                |@OptIn(ExperimentalSerializationApi::class)
                 |class ${classDeclaration.simpleName.asString()}CallHandler(val proxy: ${classDeclaration.qualifiedName!!.asString()}) 
                 |    : net.ultragrav.knet.ProxyCallHandler<${classDeclaration.qualifiedName!!.asString()}> {
                 |    override suspend fun callProxyFunction(functionName: String, args: Array<ByteArray>): ByteArray {
