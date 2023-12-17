@@ -44,22 +44,22 @@ class KNetProcessor(val environment: SymbolProcessorEnvironment) : SymbolProcess
                 val args =
                     function.parameters.joinToString(", ") { "${it.name!!.asString()}: ${it.type.resolve().declaration.qualifiedName!!.asString()}" }
                 val args2 = function.parameters.joinToString(", ") {
-                    "ProtoBuf.encodeToByteArray<${it.type.resolve().declaration.qualifiedName!!.asString()}>(${it.name!!.asString()})"
+                    "KNet.serializer.serialize<${it.type.resolve().declaration.qualifiedName!!.asString()}>(${it.name!!.asString()})"
                 }
                 val returnType = function.returnType!!.resolve().declaration.qualifiedName!!.asString()
                 functions.appendLine(
                     """
                     override suspend fun ${function.simpleName.asString()}($args): $returnType {
-                        return ProtoBuf.decodeFromByteArray<$returnType>(
+                        return KNet.serializer.deserialize<$returnType>(
                             provider.callProxyFunction("${classDeclaration.qualifiedName!!.asString()}", "${function.simpleName.asString()}", arrayOf($args2))
                         )
                     }
                 """.trimIndent()
                 )
 
-                callHandlerEntries.append("\"${function.simpleName.asString()}\" -> ProtoBuf.encodeToByteArray<$returnType>(proxy.${function.simpleName.asString()}(${
+                callHandlerEntries.append("\"${function.simpleName.asString()}\" -> KNet.serializer.serialize<$returnType>(proxy.${function.simpleName.asString()}(${
                     function.parameters.mapIndexed { index, param -> 
-                        "ProtoBuf.decodeFromByteArray<${param.type.resolve().declaration.qualifiedName!!.asString()}>(args[$index])" 
+                        "KNet.serializer.deserialize<${param.type.resolve().declaration.qualifiedName!!.asString()}>(args[$index])" 
                     }.joinToString(", ")
                 }))\n")
             }
@@ -67,12 +67,10 @@ class KNetProcessor(val environment: SymbolProcessorEnvironment) : SymbolProcess
             val classStr = """
                 |package ${classDeclaration.packageName.asString()}     
                 |
-                |import kotlinx.serialization.ExperimentalSerializationApi
-                |import kotlinx.serialization.decodeFromByteArray
-                |import kotlinx.serialization.encodeToByteArray
-                |import kotlinx.serialization.protobuf.ProtoBuf
+                |import net.ultragrav.knet.serialization.serialize
+                |import net.ultragrav.knet.serialization.deserialize
+                |import net.ultragrav.knet.KNet
                 |
-                |@OptIn(ExperimentalSerializationApi::class)
                 |class ${classDeclaration.simpleName.asString()}Proxy(val provider: net.ultragrav.knet.ProxyCallProvider) : ${classDeclaration.qualifiedName!!.asString()} {
                 |${functions.toString().prependIndent("    ")}
                 |}
@@ -90,12 +88,10 @@ class KNetProcessor(val environment: SymbolProcessorEnvironment) : SymbolProcess
             val callHandlerStr = """
                 |package ${classDeclaration.packageName.asString()}
                 |
-                |import kotlinx.serialization.ExperimentalSerializationApi
-                |import kotlinx.serialization.decodeFromByteArray
-                |import kotlinx.serialization.encodeToByteArray
-                |import kotlinx.serialization.protobuf.ProtoBuf
+                |import net.ultragrav.knet.serialization.serialize
+                |import net.ultragrav.knet.serialization.deserialize
+                |import net.ultragrav.knet.KNet
                 |
-                |@OptIn(ExperimentalSerializationApi::class)
                 |class ${classDeclaration.simpleName.asString()}CallHandler(val proxy: ${classDeclaration.qualifiedName!!.asString()}) 
                 |    : net.ultragrav.knet.ProxyCallHandler<${classDeclaration.qualifiedName!!.asString()}> {
                 |    override suspend fun callProxyFunction(functionName: String, args: Array<ByteArray>): ByteArray {
