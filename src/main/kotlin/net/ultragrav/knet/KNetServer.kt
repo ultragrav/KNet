@@ -56,6 +56,7 @@ class KNetServer(val port: Int) {
     inner class DisconnectHandler(val serverConnection: ServerConnection) : ChannelInboundHandlerAdapter() {
         override fun channelInactive(ctx: ChannelHandlerContext) {
             connected.remove(serverConnection)
+            ctx.fireChannelInactive()
         }
     }
 }
