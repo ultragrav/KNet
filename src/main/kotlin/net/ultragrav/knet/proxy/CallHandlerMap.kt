@@ -2,14 +2,11 @@ package net.ultragrav.knet.proxy
 
 import net.ultragrav.knet.ProxyCallHandler
 
-class CallHandlerMap {
+class CallHandlerMap : ProxyRegistrar {
     private val map = mutableMapOf<String, ProxyCallHandler<*>>()
 
-    fun <T> registerProxy(inter: Class<T>, proxy: ProxyCallHandler<T>) {
+    override fun <T> registerProxy(inter: Class<T>, proxy: ProxyCallHandler<T>) {
         map[inter.name] = proxy
-    }
-    inline fun <reified T> registerProxy(proxy: ProxyCallHandler<T>) {
-        registerProxy(T::class.java, proxy)
     }
 
     suspend fun call(className: String, functionName: String, args: Array<ByteArray>): ByteArray {

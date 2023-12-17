@@ -14,15 +14,16 @@ import net.ultragrav.knet.packet.encoding.PacketEncoder
 import net.ultragrav.knet.proxy.CallHandlerMap
 import net.ultragrav.knet.proxy.ProxyCallProviderImpl
 import net.ultragrav.knet.proxy.ProxyCaller
+import net.ultragrav.knet.proxy.ProxyRegistrar
 import java.net.SocketAddress
 
-class KNetClient(val host: SocketAddress) : ProxyCaller {
+class KNetClient(val host: SocketAddress) : ProxyCaller, ProxyRegistrar {
     private val clientGroup by lazy { NioEventLoopGroup() }
 
     private lateinit var channel: Channel
 
     override val callProvider = ProxyCallProviderImpl(this)
-    val proxies = CallHandlerMap()
+    private val proxies = CallHandlerMap()
 
     fun connect() {
         channel = Bootstrap()
@@ -55,5 +56,9 @@ class KNetClient(val host: SocketAddress) : ProxyCaller {
     suspend fun disconnect() {
         channel.close().awaitKt()
         clientGroup.shutdownGracefully().awaitKt()
+    }
+
+    override fun <T> registerProxy(inter: Class<T>, proxy: ProxyCallHandler<T>) {
+        proxies.registerProxy(inter, proxy)
     }
 }

@@ -1,5 +1,7 @@
 package net.ultragrav.knet
 
+import kotlinx.coroutines.delay
+import net.ultragrav.knet.proxy.registerProxy
 import java.net.InetSocketAddress
 
 val server = KNetServer(3500)
@@ -15,7 +17,7 @@ suspend fun main() {
 
     println(proxy.test("World"))
 
-    Thread.sleep(1000)
+    delay(1000)
 
     client.disconnect()
     server.stop()

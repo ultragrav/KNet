@@ -13,14 +13,15 @@ import io.netty.handler.codec.compression.Lz4FrameEncoder
 import net.ultragrav.knet.packet.encoding.PacketDecoder
 import net.ultragrav.knet.packet.encoding.PacketEncoder
 import net.ultragrav.knet.proxy.CallHandlerMap
+import net.ultragrav.knet.proxy.ProxyRegistrar
 
-class KNetServer(val port: Int) {
+class KNetServer(val port: Int) : ProxyRegistrar {
     private val bossGroup by lazy { NioEventLoopGroup() }
     private val workerGroup by lazy { NioEventLoopGroup() }
 
     private lateinit var channel: Channel
 
-    val proxies = CallHandlerMap()
+    private val proxies = CallHandlerMap()
 
     val connected = mutableSetOf<ServerConnection>()
 
@@ -62,5 +63,9 @@ class KNetServer(val port: Int) {
             connected.remove(serverConnection)
             ctx.fireChannelInactive()
         }
+    }
+
+    override fun <T> registerProxy(inter: Class<T>, proxy: ProxyCallHandler<T>) {
+        proxies.registerProxy(inter, proxy)
     }
 }
