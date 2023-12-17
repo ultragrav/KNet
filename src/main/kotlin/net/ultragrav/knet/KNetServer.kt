@@ -21,7 +21,7 @@ class KNetServer(val port: Int) : ProxyRegistrar {
 
     private lateinit var channel: Channel
 
-    private val proxies = CallHandlerMap()
+    internal val proxies = CallHandlerMap()
 
     val connected = mutableSetOf<ServerConnection>()
 
