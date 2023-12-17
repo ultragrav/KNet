@@ -11,7 +11,7 @@ suspend fun main() {
     server.run()
     client.connect()
 
-    server.proxies.registerProxy(TestInterfaceCallHandler(TestInterfaceImpl()))
+    server.registerProxy(TestInterfaceCallHandler(TestInterfaceImpl()))
 
     val proxy = TestInterfaceProxy(client.callProvider)
 
