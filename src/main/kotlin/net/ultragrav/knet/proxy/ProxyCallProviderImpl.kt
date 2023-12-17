@@ -3,6 +3,7 @@ package net.ultragrav.knet.proxy
 import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.ChannelInboundHandlerAdapter
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -29,7 +30,7 @@ class ProxyCallProviderImpl(private val caller: ProxyCaller) : ProxyCallProvider
         val id = id.incrementAndGet()
 
         val call = PacketProxyCall(id, interfaceName, functionName, args)
-        caller.sendCall(call)
+        launch { caller.sendCall(call) }
 
         return@withContext suspendCancellableCoroutine { cont ->
             responseHandlers[id] = cont

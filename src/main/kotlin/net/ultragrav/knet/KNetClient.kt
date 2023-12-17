@@ -8,6 +8,7 @@ import io.netty.channel.socket.SocketChannel
 import io.netty.channel.socket.nio.NioSocketChannel
 import io.netty.handler.codec.compression.Lz4FrameDecoder
 import io.netty.handler.codec.compression.Lz4FrameEncoder
+import net.ultragrav.knet.exception.DisconnectedException
 import net.ultragrav.knet.packet.PacketHandler
 import net.ultragrav.knet.packet.packets.PacketProxyCall
 import net.ultragrav.knet.packet.encoding.PacketDecoder
@@ -21,13 +22,13 @@ import java.net.SocketAddress
 class KNetClient(val host: SocketAddress) : ProxyCaller, ProxyRegistrar {
     private val clientGroup by lazy { NioEventLoopGroup() }
 
-    private lateinit var channel: Channel
+    lateinit var channel: Channel
 
     override val callProvider = ProxyCallProviderImpl(this)
     private val proxies = CallHandlerMap()
 
-    fun connect() {
-        channel = Bootstrap()
+    suspend fun connect() {
+        val bootstrap = Bootstrap()
             .channel(NioSocketChannel::class.java)
             .group(clientGroup)
             .handler(object : ChannelInitializer<SocketChannel>() {
@@ -42,20 +43,21 @@ class KNetClient(val host: SocketAddress) : ProxyCaller, ProxyRegistrar {
                     )
                 }
             })
-            .connect(host)
-            .sync()
-            .channel()
+        channel = bootstrap.connect(host).awaitKt().channel()
     }
 
-    override fun sendCall(call: PacketProxyCall) {
-        channel.writeAndFlush(call)
+    override suspend fun sendCall(call: PacketProxyCall) {
+        if (!channel.isActive) {
+            throw DisconnectedException()
+        }
+        channel.writeAndFlush(call).awaitKt()
     }
 
     override suspend fun handleCall(call: PacketProxyCall): ByteArray {
         return proxies.call(call.className, call.functionName, call.args)
     }
 
-    suspend fun disconnect() {
+    suspend fun shutdown() {
         channel.close().awaitKt()
         clientGroup.shutdownGracefully().awaitKt()
     }

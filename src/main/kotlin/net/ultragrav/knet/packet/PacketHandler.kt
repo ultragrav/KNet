@@ -18,9 +18,9 @@ internal class PacketHandler(private val caller: ProxyCaller) : SimpleChannelInb
                 CoroutineScope(KNet.defaultDispatcher).launch {
                     try {
                         val bytes = caller.handleCall(msg)
-                        withContext(Dispatchers.IO) { ctx.channel().writeAndFlush(PacketResponse(msg.id, bytes)) }
+                        ctx.channel().writeAndFlush(PacketResponse(msg.id, bytes))
                     } catch (e: Throwable) {
-                        withContext(Dispatchers.IO) { ctx.channel().writeAndFlush(PacketResponse(msg.id, e)) }
+                        ctx.channel().writeAndFlush(PacketResponse(msg.id, e))
                     }
                 }
             }
