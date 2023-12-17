@@ -8,6 +8,8 @@ import io.netty.channel.ChannelInitializer
 import io.netty.channel.nio.NioEventLoopGroup
 import io.netty.channel.socket.SocketChannel
 import io.netty.channel.socket.nio.NioServerSocketChannel
+import io.netty.handler.codec.compression.Lz4FrameDecoder
+import io.netty.handler.codec.compression.Lz4FrameEncoder
 import net.ultragrav.knet.packet.encoding.PacketDecoder
 import net.ultragrav.knet.packet.encoding.PacketEncoder
 import net.ultragrav.knet.proxy.CallHandlerMap
@@ -31,6 +33,8 @@ class KNetServer(val port: Int) {
                     override fun initChannel(ch: SocketChannel) {
                         val serverConnection = ServerConnection(this@KNetServer, ch)
                         ch.pipeline().addLast(
+                            Lz4FrameEncoder(),
+                            Lz4FrameDecoder(),
                             PacketDecoder(),
                             PacketEncoder(),
                             NetHandler(serverConnection),
