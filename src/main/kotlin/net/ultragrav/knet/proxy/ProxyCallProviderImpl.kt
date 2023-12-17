@@ -1,5 +1,7 @@
 package net.ultragrav.knet.proxy
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.ExperimentalSerializationApi
 import net.ultragrav.knet.ProxyCallProvider
 import net.ultragrav.knet.packet.PacketProxyCall
@@ -17,13 +19,17 @@ class ProxyCallProviderImpl(val caller: ProxyCaller) : ProxyCallProvider {
     // TODO: Handle cleanup in case of disconnect
     private val responseHandlers = mutableMapOf<Long, Continuation<ByteArray>>()
 
-    override suspend fun callProxyFunction(interfaceName: String, functionName: String, args: Array<ByteArray>): ByteArray {
+    override suspend fun callProxyFunction(
+        interfaceName: String,
+        functionName: String,
+        args: Array<ByteArray>
+    ): ByteArray = withContext(Dispatchers.IO) {
         val id = id.incrementAndGet()
 
         val call = PacketProxyCall(id, interfaceName, functionName, args)
         caller.sendCall(call)
 
-        return suspendCoroutine { cont ->
+        return@withContext suspendCoroutine { cont ->
             responseHandlers[id] = cont
         }
     }

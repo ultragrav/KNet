@@ -9,17 +9,15 @@ import net.ultragrav.knet.proxy.ProxyCaller
 import kotlin.coroutines.suspendCoroutine
 
 class NetHandler(val caller: ProxyCaller) : SimpleChannelInboundHandler<Any>() {
-    val scope = CoroutineScope(Dispatchers.IO)
-
     override fun channelRead0(ctx: ChannelHandlerContext, msg: Any) {
         when (msg) {
             is PacketProxyCall -> {
-                scope.launch {
+                CoroutineScope(KNet.defaultDispatcher).launch {
                     try {
                         val bytes = caller.handleCall(msg)
-                        ctx.channel().writeAndFlush(PacketResponse(msg.id, bytes))
+                        withContext(Dispatchers.IO) { ctx.channel().writeAndFlush(PacketResponse(msg.id, bytes)) }
                     } catch (e: Throwable) {
-                        ctx.channel().writeAndFlush(PacketResponse(msg.id, e))
+                        withContext(Dispatchers.IO) { ctx.channel().writeAndFlush(PacketResponse(msg.id, e)) }
                     }
                 }
             }
