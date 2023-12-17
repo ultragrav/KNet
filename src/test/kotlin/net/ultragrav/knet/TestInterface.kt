@@ -1,7 +1,6 @@
-package net.ultragrav.knet.packet.e
+package net.ultragrav.knet
 
 import net.ultragrav.knet.ProxiedInterface
-import java.util.*
 
 @ProxiedInterface
 interface TestInterface {

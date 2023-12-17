@@ -15,6 +15,7 @@ dependencies {
     api(project(":API"))
 
     implementation("io.netty:netty-all:4.1.104.Final")
+    implementation("net.jpountz.lz4:lz4:1.3.0")
 
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:${properties["kotlinxSerializationVersion"]}")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-protobuf:${properties["kotlinxSerializationVersion"]}")

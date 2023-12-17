@@ -51,10 +51,10 @@ class KNetServer(val port: Int) {
         }
     }
 
-    fun stop() {
-        channel.close().sync()
-        bossGroup.shutdownGracefully()
-        workerGroup.shutdownGracefully()
+    suspend fun stop() {
+        channel.close().awaitKt()
+        bossGroup.shutdownGracefully().awaitKt()
+        workerGroup.shutdownGracefully().awaitKt()
     }
 
     inner class DisconnectHandler(private val serverConnection: ServerConnection) : ChannelInboundHandlerAdapter() {
