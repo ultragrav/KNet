@@ -5,7 +5,7 @@ plugins {
     `maven-publish`
 }
 
-group = "net.ultragrav"
+group = "net.ultragrav.knet"
 version = "1.0.1"
 
 repositories {
