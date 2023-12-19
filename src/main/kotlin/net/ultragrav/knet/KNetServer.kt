@@ -20,19 +20,26 @@ class KNetServer(val port: Int) : ProxyRegistrar {
     private val bossGroup by lazy { NioEventLoopGroup() }
     private val workerGroup by lazy { NioEventLoopGroup() }
 
+    private var active = true
+
     lateinit var channel: Channel
 
     internal val proxies = CallHandlerMap()
 
     val connected = mutableSetOf<ServerConnection>()
 
-    fun run() {
+    suspend fun run() {
         try {
             channel = ServerBootstrap()
                 .channel(NioServerSocketChannel::class.java)
                 .group(bossGroup, workerGroup)
                 .childHandler(object : ChannelInitializer<SocketChannel>() {
                     override fun initChannel(ch: SocketChannel) {
+                        if (!active) {
+                            ch.close()
+                            return
+                        }
+
                         val serverConnection = ServerConnection(this@KNetServer, ch)
                         ch.pipeline().addLast(
                             Lz4FrameEncoder(),
@@ -47,7 +54,7 @@ class KNetServer(val port: Int) : ProxyRegistrar {
                     }
                 })
                 .bind(port)
-                .sync()
+                .awaitKt()
                 .channel()
         } catch (e: Exception) {
             e.printStackTrace()
@@ -55,6 +62,8 @@ class KNetServer(val port: Int) : ProxyRegistrar {
     }
 
     suspend fun stop() {
+        active = false
+        connected.forEach { it.channel.close().awaitKt() }
         channel.close().awaitKt()
         bossGroup.shutdownGracefully().awaitKt()
         workerGroup.shutdownGracefully().awaitKt()
