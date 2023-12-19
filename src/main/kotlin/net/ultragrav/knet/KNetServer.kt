@@ -20,7 +20,7 @@ class KNetServer(val port: Int) : ProxyRegistrar {
     private val bossGroup by lazy { NioEventLoopGroup() }
     private val workerGroup by lazy { NioEventLoopGroup() }
 
-    private lateinit var channel: Channel
+    lateinit var channel: Channel
 
     internal val proxies = CallHandlerMap()
 
