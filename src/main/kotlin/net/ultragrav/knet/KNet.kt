@@ -12,7 +12,7 @@ object KNet {
     var defaultDispatcher = Dispatchers.Default
     var serializer: Serializer = ProtoBufSerializer
 
-    suspend fun caller(): ProxyCaller {
+    suspend inline fun caller(): ProxyCaller {
         return coroutineContext[KNetCallerContextElement.Key]?.caller ?: error("No caller found in context")
     }
 }
