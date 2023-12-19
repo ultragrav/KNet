@@ -10,21 +10,22 @@ import io.netty.handler.codec.compression.Lz4FrameDecoder
 import io.netty.handler.codec.compression.Lz4FrameEncoder
 import net.ultragrav.knet.exception.DisconnectedException
 import net.ultragrav.knet.packet.PacketHandler
-import net.ultragrav.knet.packet.packets.PacketProxyCall
 import net.ultragrav.knet.packet.encoding.PacketDecoder
 import net.ultragrav.knet.packet.encoding.PacketEncoder
+import net.ultragrav.knet.packet.packets.PacketProxyCall
 import net.ultragrav.knet.proxy.CallHandlerMap
-import net.ultragrav.knet.proxy.ProxyCallProviderImpl
 import net.ultragrav.knet.proxy.ProxyCaller
 import net.ultragrav.knet.proxy.ProxyRegistrar
 import java.net.SocketAddress
 
-class KNetClient(val host: SocketAddress) : ProxyCaller, ProxyRegistrar {
+class KNetClient(val host: SocketAddress) : ProxyCaller(), ProxyRegistrar {
     private val clientGroup by lazy { NioEventLoopGroup() }
+
+    var active = true
+        private set
 
     lateinit var channel: Channel
 
-    override val callProvider = ProxyCallProviderImpl(this)
     private val proxies = CallHandlerMap()
 
     suspend fun connect() {
@@ -58,6 +59,8 @@ class KNetClient(val host: SocketAddress) : ProxyCaller, ProxyRegistrar {
     }
 
     suspend fun shutdown() {
+        active = false
+
         channel.close().awaitKt()
         clientGroup.shutdownGracefully().awaitKt()
     }
