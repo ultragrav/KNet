@@ -6,7 +6,7 @@ import net.ultragrav.knet.proxy.ProxyCaller
 
 class ServerConnection(val server: KNetServer, val channel: Channel) : ProxyCaller() {
 
-    lateinit var attachment: Any
+    var attachment: Any? = null
 
     override suspend fun sendCall(call: PacketProxyCall) {
         channel.writeAndFlush(call).awaitKt()
