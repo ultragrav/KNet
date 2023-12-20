@@ -28,6 +28,8 @@ class KNetServer(val port: Int) : ProxyRegistrar {
 
     val connected = mutableSetOf<ServerConnection>()
 
+    var listener: KNetServerListener? = null
+
     suspend fun run() {
         try {
             channel = ServerBootstrap()
@@ -51,6 +53,9 @@ class KNetServer(val port: Int) : ProxyRegistrar {
                             serverConnection.callProvider.DisconnectHandler()
                         )
                         connected.add(serverConnection)
+
+                        runCatching { listener?.onConnect(serverConnection) }
+                            .onFailure { it.printStackTrace() }
                     }
                 })
                 .bind(port)
@@ -71,6 +76,9 @@ class KNetServer(val port: Int) : ProxyRegistrar {
 
     inner class DisconnectHandler(private val serverConnection: ServerConnection) : ChannelInboundHandlerAdapter() {
         override fun channelInactive(ctx: ChannelHandlerContext) {
+            runCatching { listener?.onDisconnect(serverConnection) }
+                .onFailure { it.printStackTrace() }
+
             connected.remove(serverConnection)
             ctx.fireChannelInactive()
         }
