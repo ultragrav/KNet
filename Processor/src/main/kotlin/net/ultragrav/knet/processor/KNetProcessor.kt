@@ -36,6 +36,8 @@ class KNetProcessor(val environment: SymbolProcessorEnvironment) : SymbolProcess
             // Check if the type has a KClass and get its qualified name
             val qualifiedName = type.declaration.qualifiedName?.asString() ?: "Unknown"
 
+            val nullabilityStr = if (type.nullability == Nullability.NOT_NULL) "" else "?"
+
             return "$qualifiedName${
                 if (type.arguments.isEmpty()) "" else "<${
                     type.arguments.joinToString(", ") {
@@ -43,7 +45,7 @@ class KNetProcessor(val environment: SymbolProcessorEnvironment) : SymbolProcess
                             it
                         )
                     }
-                }>"
+                }>$nullabilityStr"
             }"
         }
 
