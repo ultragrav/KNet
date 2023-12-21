@@ -18,7 +18,7 @@ internal class PacketHandler(private val caller: ProxyCaller) : SimpleChannelInb
                     try {
                         val bytes = caller.handleCall(msg)
                         ctx.channel().writeAndFlush(PacketResponse(msg.id, bytes))
-                    } catch (e: Throwable) {
+                    } catch (e: Exception) {
                         ctx.channel().writeAndFlush(PacketResponse(msg.id, e))
                     }
                 }
