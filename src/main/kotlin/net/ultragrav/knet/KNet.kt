@@ -1,6 +1,5 @@
 package net.ultragrav.knet
 
-import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import net.ultragrav.knet.proxy.KNetCallerContextElement
 import net.ultragrav.knet.proxy.ProxyCaller
