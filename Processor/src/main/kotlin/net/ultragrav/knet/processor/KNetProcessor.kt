@@ -45,8 +45,8 @@ class KNetProcessor(val environment: SymbolProcessorEnvironment) : SymbolProcess
                             it
                         )
                     }
-                }>$nullabilityStr"
-            }"
+                }>"
+            }$nullabilityStr"
         }
 
         override fun visitClassDeclaration(classDeclaration: KSClassDeclaration, data: Unit) {
