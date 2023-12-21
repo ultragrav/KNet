@@ -68,7 +68,7 @@ class KNetProcessor(val environment: SymbolProcessorEnvironment) : SymbolProcess
             val callHandlerEntries = StringBuilder()
             toImplement.forEach { function ->
                 val args =
-                    function.parameters.joinToString(", ") { "${it.name!!.asString()}: ${it.type.resolve()}" }
+                    function.parameters.joinToString(", ") { "${it.name!!.asString()}: ${generateTypeString(it.type.resolve())}" }
                 val args2 = function.parameters.joinToString(", ") {
                     "KNet.serializer.serialize<${generateTypeString(it.type.resolve())}>(${it.name!!.asString()})"
                 }
