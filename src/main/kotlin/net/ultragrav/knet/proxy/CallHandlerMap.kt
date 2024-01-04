@@ -10,7 +10,7 @@ class CallHandlerMap : ProxyRegistrar {
     }
 
     suspend fun call(className: String, functionName: String, args: Array<ByteArray>): ByteArray {
-        val handler = map[className] ?: throw IllegalArgumentException("No class registered with name $className")
+        val handler = map[className] ?: throw NoSuchProxyException(className)
         return handler.callProxyFunction(functionName, args)
     }
 }
