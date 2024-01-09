@@ -10,6 +10,7 @@ version = "1.0.3"
 
 repositories {
     mavenCentral()
+    mavenLocal()
 }
 
 dependencies {
@@ -19,6 +20,7 @@ dependencies {
     api("org.jetbrains.kotlinx:kotlinx-serialization-core:${properties["kotlinxSerializationVersion"]}")
     api("org.jetbrains.kotlinx:kotlinx-serialization-protobuf:${properties["kotlinxSerializationVersion"]}")
     api("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
+    implementation("net.ultragrav:KSerializer:1.1.2")
 
     api(project(":Processor"))
     ksp(project(":Processor"))
