@@ -8,6 +8,8 @@ import io.netty.channel.socket.SocketChannel
 import io.netty.channel.socket.nio.NioSocketChannel
 import io.netty.handler.codec.compression.Lz4FrameDecoder
 import io.netty.handler.codec.compression.Lz4FrameEncoder
+import net.ultragrav.knet.compression.LZ4CompressHandler
+import net.ultragrav.knet.compression.LZ4DecompressHandler
 import net.ultragrav.knet.exception.DisconnectedException
 import net.ultragrav.knet.packet.PacketHandler
 import net.ultragrav.knet.packet.encoding.PacketDecoder
@@ -35,8 +37,8 @@ class KNetClient(val host: SocketAddress) : ProxyCaller(), ProxyRegistrar {
             .handler(object : ChannelInitializer<SocketChannel>() {
                 override fun initChannel(ch: SocketChannel) {
                     ch.pipeline().addLast(
-                        Lz4FrameEncoder(),
-                        Lz4FrameDecoder(),
+                        LZ4CompressHandler(),
+                        LZ4DecompressHandler(),
                         PacketDecoder(),
                         PacketEncoder(),
                         PacketHandler(this@KNetClient),

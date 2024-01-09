@@ -8,8 +8,8 @@ import io.netty.channel.ChannelInitializer
 import io.netty.channel.nio.NioEventLoopGroup
 import io.netty.channel.socket.SocketChannel
 import io.netty.channel.socket.nio.NioServerSocketChannel
-import io.netty.handler.codec.compression.Lz4FrameDecoder
-import io.netty.handler.codec.compression.Lz4FrameEncoder
+import net.ultragrav.knet.compression.LZ4CompressHandler
+import net.ultragrav.knet.compression.LZ4DecompressHandler
 import net.ultragrav.knet.packet.PacketHandler
 import net.ultragrav.knet.packet.encoding.PacketDecoder
 import net.ultragrav.knet.packet.encoding.PacketEncoder
@@ -44,8 +44,8 @@ class KNetServer(val port: Int) : ProxyRegistrar {
 
                         val serverConnection = ServerConnection(this@KNetServer, ch)
                         ch.pipeline().addLast(
-                            Lz4FrameEncoder(),
-                            Lz4FrameDecoder(),
+                            LZ4CompressHandler(),
+                            LZ4DecompressHandler(),
                             PacketDecoder(),
                             PacketEncoder(),
                             PacketHandler(serverConnection),
