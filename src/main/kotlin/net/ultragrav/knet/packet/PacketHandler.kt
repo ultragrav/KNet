@@ -17,19 +17,19 @@ internal class PacketHandler(private val caller: ProxyCaller) : SimpleChannelInb
         when (msg) {
             is PacketProxyCall -> {
                 CoroutineScope(KNet.defaultDispatcher + KNetCallerContextElement(caller)).launch {
-                    try {
-                        val bytes = caller.handleCall(msg)
-                        ctx.writeAndFlush(PacketResponse(msg.id, bytes))
-                            .awaitKt()
-                    } catch (e: Exception) {
-                        try {
-                            ctx.writeAndFlush(PacketResponse(msg.id, e))
-                                .awaitKt()
-                        } catch (e2: Exception) {
-                            e.printStackTrace()
-                            e2.printStackTrace()
-                        }
+
+                    suspend fun sendErr(e: Throwable) {
+                        runCatching { ctx.writeAndFlush(PacketResponse(msg.id, e))
+                            .awaitKt() }
+                            .onFailure { e.printStackTrace(); it.printStackTrace() }
                     }
+
+                    val bytes = runCatching { caller.handleCall(msg) }
+                        .onFailure { sendErr(it) }
+                        .getOrNull() ?: return@launch
+
+                    runCatching { ctx.writeAndFlush(PacketResponse(msg.id, bytes)) }
+                        .onFailure { sendErr(it) }
                 }
             }
 

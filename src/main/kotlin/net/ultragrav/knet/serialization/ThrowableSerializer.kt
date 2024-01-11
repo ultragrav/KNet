@@ -10,18 +10,18 @@ import java.io.ByteArrayOutputStream
 import java.io.ObjectInputStream
 import java.io.ObjectOutputStream
 
-object ExceptionSerializer : KSerializer<Exception> {
+object ThrowableSerializer : KSerializer<Throwable> {
     private val delegate = ByteArraySerializer()
     override val descriptor: SerialDescriptor = delegate.descriptor
 
-    override fun deserialize(decoder: Decoder): Exception {
+    override fun deserialize(decoder: Decoder): Throwable {
         val ois = ObjectInputStream(ByteArrayInputStream(decoder.decodeSerializableValue(delegate)))
-        val exception = ois.readObject() as Exception
+        val exception = ois.readObject() as Throwable
         ois.close()
         return exception
     }
 
-    override fun serialize(encoder: Encoder, value: Exception) {
+    override fun serialize(encoder: Encoder, value: Throwable) {
         val baos = ByteArrayOutputStream()
         val oos = ObjectOutputStream(baos)
         oos.writeObject(value)
