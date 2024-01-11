@@ -15,4 +15,12 @@ class ServerConnection(val server: KNetServer, val channel: Channel) : ProxyCall
     override suspend fun handleCall(call: PacketProxyCall): ByteArray {
         return server.proxies.call(call.className, call.functionName, call.args)
     }
+
+    override fun toString(): String {
+        return if (attachment != null) {
+            "ServerConnection($attachment : ${channel.remoteAddress()})"
+        } else {
+            "ServerConnection(${channel.remoteAddress()})"
+        }
+    }
 }

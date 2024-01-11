@@ -68,4 +68,8 @@ class KNetClient(val host: SocketAddress) : ProxyCaller(), ProxyRegistrar {
     override fun <T> registerProxy(inter: Class<T>, proxy: ProxyCallHandler<T>) {
         proxies.registerProxy(inter, proxy)
     }
+
+    override fun toString(): String {
+        return "KNetClient($host)"
+    }
 }

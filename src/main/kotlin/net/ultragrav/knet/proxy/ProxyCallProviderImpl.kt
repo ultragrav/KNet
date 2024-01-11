@@ -20,7 +20,13 @@ import kotlin.coroutines.resumeWithException
 class ProxyCallProviderImpl(private val caller: ProxyCaller) : ProxyCallProvider {
     private val id = AtomicLong(0)
 
-    private val responseHandlers = mutableMapOf<Long, Continuation<ByteArray>>()
+    private class ResponseHandler(
+        val interfaceName: String,
+        val functionName: String,
+        val continuation: Continuation<ByteArray>
+    )
+
+    private val responseHandlers = mutableMapOf<Long, ResponseHandler>()
 
     override suspend fun callProxyFunction(
         interfaceName: String,
@@ -33,7 +39,7 @@ class ProxyCallProviderImpl(private val caller: ProxyCaller) : ProxyCallProvider
         launch { caller.sendCall(call) }
 
         return@withContext suspendCancellableCoroutine { cont ->
-            responseHandlers[id] = cont
+            responseHandlers[id] = ResponseHandler(interfaceName, functionName, cont)
             cont.invokeOnCancellation {
                 responseHandlers.remove(id)
             }
@@ -41,15 +47,32 @@ class ProxyCallProviderImpl(private val caller: ProxyCaller) : ProxyCallProvider
     }
 
     internal fun handleResponse(response: PacketResponse) {
-        val continuation = responseHandlers.remove(response.id) ?: return
+        val responseHandler = responseHandlers.remove(response.id) ?: return
         when (response.state) {
-            PacketResponse.STATE_SUCCESS -> continuation.resume(response.returnValue)
-            PacketResponse.STATE_EXCEPTION -> continuation.resumeWithException(response.exception!!)
+            PacketResponse.STATE_SUCCESS -> responseHandler.continuation.resume(response.returnValue)
+            PacketResponse.STATE_EXCEPTION -> {
+                // Inject line into stack trace
+                val exception = response.exception!!
+                val stackTrace = exception.stackTrace
+                val newStackTrace = arrayOfNulls<StackTraceElement>(stackTrace.size + 1)
+
+                newStackTrace[0] = StackTraceElement(
+                    "!! Remote[$caller]@${responseHandler.interfaceName}",
+                    responseHandler.functionName,
+                    "?",
+                    -1
+                )
+                System.arraycopy(stackTrace, 0, newStackTrace, 1, stackTrace.size)
+
+                exception.stackTrace = newStackTrace
+
+                responseHandler.continuation.resumeWithException(exception)
+            }
         }
     }
 
     internal fun handleDisconnect() {
-        responseHandlers.values.forEach { it.resumeWithException(DisconnectedException()) }
+        responseHandlers.values.forEach { it.continuation.resumeWithException(DisconnectedException()) }
         responseHandlers.clear()
     }
 
