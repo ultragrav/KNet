@@ -68,7 +68,7 @@ class KNetServer(val port: Int) : ProxyRegistrar {
 
     suspend fun stop() {
         active = false
-        connected.forEach { it.channel.close().awaitKt() }
+        connected.toList().forEach { it.channel.close().awaitKt() }
         channel.close().awaitKt()
         bossGroup.shutdownGracefully().awaitKt()
         workerGroup.shutdownGracefully().awaitKt()
