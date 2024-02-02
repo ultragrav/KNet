@@ -52,7 +52,10 @@ class KNetServer(val port: Int) : ProxyRegistrar {
                             DisconnectHandler(serverConnection),
                             serverConnection.callProvider.DisconnectHandler()
                         )
-                        connected.add(serverConnection)
+
+                        synchronized(connected) {
+                            connected.add(serverConnection)
+                        }
 
                         runCatching { listener?.onConnect(serverConnection) }
                             .onFailure { it.printStackTrace() }
@@ -68,7 +71,8 @@ class KNetServer(val port: Int) : ProxyRegistrar {
 
     suspend fun stop() {
         active = false
-        connected.toList().forEach { it.channel.close().awaitKt() }
+        val copy = synchronized(connected) { connected.toList() }
+        copy.forEach { it.channel.close().awaitKt() }
         channel.close().awaitKt()
         bossGroup.shutdownGracefully().awaitKt()
         workerGroup.shutdownGracefully().awaitKt()
@@ -79,7 +83,9 @@ class KNetServer(val port: Int) : ProxyRegistrar {
             runCatching { listener?.onDisconnect(serverConnection) }
                 .onFailure { it.printStackTrace() }
 
-            connected.remove(serverConnection)
+            synchronized(connected) {
+                connected.remove(serverConnection)
+            }
             ctx.fireChannelInactive()
         }
     }
