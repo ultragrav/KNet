@@ -76,6 +76,7 @@ class KNetServer(val port: Int) : ProxyRegistrar {
         channel.close().awaitKt()
         bossGroup.shutdownGracefully().awaitKt()
         workerGroup.shutdownGracefully().awaitKt()
+        synchronized(connected) { connected.clear() }
     }
 
     inner class DisconnectHandler(private val serverConnection: ServerConnection) : ChannelInboundHandlerAdapter() {

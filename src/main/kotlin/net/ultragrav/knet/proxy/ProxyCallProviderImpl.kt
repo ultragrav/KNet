@@ -2,11 +2,9 @@ package net.ultragrav.knet.proxy
 
 import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.ChannelInboundHandlerAdapter
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.suspendCancellableCoroutine
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.*
 import kotlinx.serialization.ExperimentalSerializationApi
+import net.ultragrav.knet.KNet
 import net.ultragrav.knet.ProxyCallProvider
 import net.ultragrav.knet.exception.DisconnectedException
 import net.ultragrav.knet.packet.packets.PacketProxyCall
@@ -15,6 +13,7 @@ import java.util.concurrent.atomic.AtomicLong
 import kotlin.coroutines.Continuation
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
+import kotlin.time.Duration.Companion.minutes
 
 @OptIn(ExperimentalSerializationApi::class)
 class ProxyCallProviderImpl(private val caller: ProxyCaller) : ProxyCallProvider {
@@ -23,7 +22,8 @@ class ProxyCallProviderImpl(private val caller: ProxyCaller) : ProxyCallProvider
     private class ResponseHandler(
         val interfaceName: String,
         val functionName: String,
-        val continuation: Continuation<ByteArray>
+        val continuation: Continuation<ByteArray>,
+        val timestamp: Long = System.currentTimeMillis()
     )
 
     private val responseHandlers = mutableMapOf<Long, ResponseHandler>()
@@ -36,14 +36,20 @@ class ProxyCallProviderImpl(private val caller: ProxyCaller) : ProxyCallProvider
         val id = id.incrementAndGet()
 
         val call = PacketProxyCall(id, interfaceName, functionName, args)
-        launch { caller.sendCall(call) }
 
-        return@withContext suspendCancellableCoroutine { cont ->
-            responseHandlers[id] = ResponseHandler(interfaceName, functionName, cont)
-            cont.invokeOnCancellation {
-                responseHandlers.remove(id)
+        return@withContext coroutineScope { // Make sure that if sendCall
+            // fails then the continuation is also cancelled
+            launch { caller.sendCall(call) }
+            withTimeout(KNet.callTimeout) {
+                suspendCancellableCoroutine { cont ->
+                    cont.invokeOnCancellation {
+                        responseHandlers.remove(id)
+                    }
+                    responseHandlers[id] = ResponseHandler(interfaceName, functionName, cont)
+                }
             }
         }
+
     }
 
     internal fun handleResponse(response: PacketResponse) {
