@@ -41,11 +41,15 @@ class ProxyCallProviderImpl(private val caller: ProxyCaller) : ProxyCallProvider
             // fails then the continuation is also cancelled
             launch { caller.sendCall(call) }
             withTimeout(KNet.callTimeout) {
-                suspendCancellableCoroutine { cont ->
-                    cont.invokeOnCancellation {
-                        responseHandlers.remove(id)
+                try {
+                    suspendCancellableCoroutine { cont ->
+                        cont.invokeOnCancellation {
+                            responseHandlers.remove(id)
+                        }
+                        responseHandlers[id] = ResponseHandler(interfaceName, functionName, cont)
                     }
-                    responseHandlers[id] = ResponseHandler(interfaceName, functionName, cont)
+                } catch(e: DisconnectedException) {
+                    throw DisconnectedException()
                 }
             }
         }
