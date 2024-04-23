@@ -13,7 +13,6 @@ import java.util.concurrent.atomic.AtomicLong
 import kotlin.coroutines.Continuation
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
-import kotlin.time.Duration.Companion.minutes
 
 @OptIn(ExperimentalSerializationApi::class)
 class ProxyCallProviderImpl(private val caller: ProxyCaller) : ProxyCallProvider {
@@ -32,28 +31,30 @@ class ProxyCallProviderImpl(private val caller: ProxyCaller) : ProxyCallProvider
         interfaceName: String,
         functionName: String,
         args: Array<ByteArray>
-    ): ByteArray = withContext(Dispatchers.IO) {
-        val id = id.incrementAndGet()
+    ): ByteArray {
+        try {
+            return withContext(Dispatchers.IO) {
+                val id = id.incrementAndGet()
 
-        val call = PacketProxyCall(id, interfaceName, functionName, args)
+                val call = PacketProxyCall(id, interfaceName, functionName, args)
 
-        return@withContext coroutineScope { // Make sure that if sendCall
-            // fails then the continuation is also cancelled
-            launch { caller.sendCall(call) }
-            withTimeout(KNet.callTimeout) {
-                try {
-                    suspendCancellableCoroutine { cont ->
-                        cont.invokeOnCancellation {
-                            responseHandlers.remove(id)
+                return@withContext coroutineScope { // Make sure that if sendCall
+                    // fails then the continuation is also cancelled
+                    launch { caller.sendCall(call) }
+                    withTimeout(KNet.callTimeout) {
+                        suspendCancellableCoroutine { cont ->
+                            cont.invokeOnCancellation {
+                                responseHandlers.remove(id)
+                            }
+                            responseHandlers[id] = ResponseHandler(interfaceName, functionName, cont)
                         }
-                        responseHandlers[id] = ResponseHandler(interfaceName, functionName, cont)
                     }
-                } catch(e: DisconnectedException) {
-                    throw DisconnectedException()
                 }
-            }
-        }
 
+            }
+        } catch (e: DisconnectedException) {
+            throw DisconnectedException()
+        }
     }
 
     internal fun handleResponse(response: PacketResponse) {
