@@ -32,6 +32,7 @@ class ProxyCallProviderImpl(private val caller: ProxyCaller) : ProxyCallProvider
         functionName: String,
         args: Array<ByteArray>
     ): ByteArray {
+        val exception = DisconnectedException()
         try {
             return withContext(Dispatchers.IO) {
                 val id = id.incrementAndGet()
@@ -53,7 +54,7 @@ class ProxyCallProviderImpl(private val caller: ProxyCaller) : ProxyCallProvider
 
             }
         } catch (e: DisconnectedException) {
-            throw DisconnectedException()
+            throw exception
         }
     }
 
