@@ -47,6 +47,10 @@ class KNetClient(val host: SocketAddress) : ProxyCaller(), ProxyRegistrar {
         channel = bootstrap.connect(host).awaitKt().channel()
     }
 
+    fun isChannelInitialized(): Boolean {
+        return this::channel.isInitialized
+    }
+
     override suspend fun sendCall(call: PacketProxyCall) {
         if (!channel.isActive) {
             throw DisconnectedException()
