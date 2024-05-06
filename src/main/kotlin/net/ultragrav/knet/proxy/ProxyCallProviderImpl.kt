@@ -45,9 +45,11 @@ class ProxyCallProviderImpl(private val caller: ProxyCaller) : ProxyCallProvider
                     withTimeout(KNet.callTimeout) {
                         suspendCancellableCoroutine { cont ->
                             cont.invokeOnCancellation {
-                                responseHandlers.remove(id)
+                                synchronized(responseHandlers) { responseHandlers.remove(id) }
                             }
-                            responseHandlers[id] = ResponseHandler(interfaceName, functionName, cont)
+                            synchronized(responseHandlers) {
+                                responseHandlers[id] = ResponseHandler(interfaceName, functionName, cont)
+                            }
                         }
                     }
                 }
@@ -59,7 +61,7 @@ class ProxyCallProviderImpl(private val caller: ProxyCaller) : ProxyCallProvider
     }
 
     internal fun handleResponse(response: PacketResponse) {
-        val responseHandler = responseHandlers.remove(response.id) ?: return
+        val responseHandler = synchronized(responseHandlers) { responseHandlers.remove(response.id) } ?: return
         when (response.state) {
             PacketResponse.STATE_SUCCESS -> responseHandler.continuation.resume(response.returnValue)
             PacketResponse.STATE_EXCEPTION -> {
@@ -84,8 +86,12 @@ class ProxyCallProviderImpl(private val caller: ProxyCaller) : ProxyCallProvider
     }
 
     internal fun handleDisconnect() {
-        responseHandlers.values.forEach { it.continuation.resumeWithException(DisconnectedException()) }
-        responseHandlers.clear()
+        val resume = synchronized(responseHandlers) {
+            val list = responseHandlers.values.toList()
+            responseHandlers.clear()
+            list
+        }
+        resume.forEach { it.continuation.resumeWithException(DisconnectedException()) }
     }
 
     internal inner class DisconnectHandler : ChannelInboundHandlerAdapter() {
