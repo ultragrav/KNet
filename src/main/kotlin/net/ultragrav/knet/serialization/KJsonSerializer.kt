@@ -3,7 +3,6 @@ package net.ultragrav.knet.serialization
 import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerializationStrategy
-import kotlinx.serialization.protobuf.ProtoBuf
 import kotlinx.serialization.serializer
 import net.ultragrav.kserializer.kotlinx.KJson
 import kotlin.reflect.KType

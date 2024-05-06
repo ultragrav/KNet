@@ -18,9 +18,8 @@ dependencies {
     api("org.lz4:lz4-java:1.8.0")
 
     api("org.jetbrains.kotlinx:kotlinx-serialization-core:${properties["kotlinxSerializationVersion"]}")
-    api("org.jetbrains.kotlinx:kotlinx-serialization-protobuf:${properties["kotlinxSerializationVersion"]}")
     api("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
-    implementation("net.ultragrav:KSerializer:1.1.2")
+    implementation("net.ultragrav:KSerializer:1.1.3")
 
     api(project(":Processor"))
     ksp(project(":Processor"))
