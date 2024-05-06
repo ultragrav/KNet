@@ -96,7 +96,7 @@ class ProxyCallProviderImpl(private val caller: ProxyCaller) : ProxyCallProvider
 
     internal inner class DisconnectHandler : ChannelInboundHandlerAdapter() {
         override fun channelInactive(ctx: ChannelHandlerContext) {
-            handleDisconnect()
+            runCatching { handleDisconnect() }.onFailure { it.printStackTrace() }
             ctx.fireChannelInactive()
         }
     }
