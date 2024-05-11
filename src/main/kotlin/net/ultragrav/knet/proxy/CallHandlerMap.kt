@@ -1,16 +1,25 @@
 package net.ultragrav.knet.proxy
 
+import kotlinx.coroutines.withContext
 import net.ultragrav.knet.ProxyCallHandler
+import java.util.concurrent.ConcurrentHashMap
 
 class CallHandlerMap : ProxyRegistrar {
-    private val map = mutableMapOf<String, ProxyCallHandler<*>>()
 
-    override fun <T> registerProxy(inter: Class<T>, proxy: ProxyCallHandler<T>) {
-        map[inter.name] = proxy
+    private class Registration(val handler: ProxyCallHandler<*>, val config: ProxyCallHandlerConfig)
+
+    private val map = ConcurrentHashMap<String, Registration>()
+
+    override fun <T> registerProxy(inter: Class<T>, proxy: ProxyCallHandler<T>, config: ProxyCallHandlerConfig) {
+        map[inter.name] = Registration(proxy, config)
     }
 
     suspend fun call(className: String, functionName: String, args: Array<ByteArray>): ByteArray {
-        val handler = map[className] ?: throw NoSuchProxyException(className)
-        return handler.callProxyFunction(functionName, args)
+        val registration = map[className] ?: throw NoSuchProxyException(className)
+        val handler = registration.handler
+        val config = registration.config
+        return withContext(config.dispatcher()) {
+            handler.callProxyFunction(functionName, args)
+        }
     }
 }

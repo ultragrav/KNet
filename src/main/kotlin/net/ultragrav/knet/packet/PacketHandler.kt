@@ -4,7 +4,9 @@ import io.netty.channel.ChannelFutureListener
 import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.SimpleChannelInboundHandler
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import net.ultragrav.knet.KNet
 import net.ultragrav.knet.awaitKt
 import net.ultragrav.knet.packet.packets.PacketProxyCall
@@ -16,9 +18,9 @@ internal class PacketHandler(private val caller: ProxyCaller) : SimpleChannelInb
     override fun channelRead0(ctx: ChannelHandlerContext, msg: Any) {
         when (msg) {
             is PacketProxyCall -> {
-                CoroutineScope(KNet.defaultDispatcher + KNetCallerContextElement(caller)).launch {
+                CoroutineScope(Dispatchers.Default + KNetCallerContextElement(caller)).launch {
 
-                    suspend fun sendErr(e: Throwable) {
+                    suspend fun sendErr(e: Throwable) = withContext(Dispatchers.IO) {
                         runCatching { ctx.writeAndFlush(PacketResponse(msg.id, e))
                             .awaitKt() }
                             .onFailure { e.printStackTrace(); it.printStackTrace() }
@@ -28,8 +30,10 @@ internal class PacketHandler(private val caller: ProxyCaller) : SimpleChannelInb
                         .onFailure { sendErr(it) }
                         .getOrNull() ?: return@launch
 
-                    runCatching { ctx.writeAndFlush(PacketResponse(msg.id, bytes)) }
-                        .onFailure { sendErr(it) }
+                    withContext(Dispatchers.IO) {
+                        runCatching { ctx.writeAndFlush(PacketResponse(msg.id, bytes)) }
+                            .onFailure { sendErr(it) }
+                    }
                 }
             }
 
