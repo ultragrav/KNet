@@ -14,6 +14,7 @@ import net.ultragrav.knet.packet.PacketHandler
 import net.ultragrav.knet.packet.encoding.PacketDecoder
 import net.ultragrav.knet.packet.encoding.PacketEncoder
 import net.ultragrav.knet.proxy.CallHandlerMap
+import net.ultragrav.knet.proxy.ProxyCallHandlerConfig
 import net.ultragrav.knet.proxy.ProxyRegistrar
 
 class KNetServer(val port: Int) : ProxyRegistrar {
@@ -91,7 +92,7 @@ class KNetServer(val port: Int) : ProxyRegistrar {
         }
     }
 
-    override fun <T> registerProxy(inter: Class<T>, proxy: ProxyCallHandler<T>) {
-        proxies.registerProxy(inter, proxy)
+    override fun <T> registerProxy(inter: Class<T>, proxy: ProxyCallHandler<T>, config: ProxyCallHandlerConfig) {
+        proxies.registerProxy(inter, proxy, config)
     }
 }
