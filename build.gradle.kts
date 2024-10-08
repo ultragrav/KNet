@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "net.ultragrav.knet"
-version = "1.0.11"
+version = "1.0.12"
 
 repositories {
     mavenCentral()
@@ -19,7 +19,7 @@ dependencies {
 
     api("org.jetbrains.kotlinx:kotlinx-serialization-core:${properties["kotlinxSerializationVersion"]}")
     api("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
-    implementation("net.ultragrav:KSerializer:1.1.3")
+    implementation("net.ultragrav:KSerializer:1.1.6")
 
     api(project(":Processor"))
     ksp(project(":Processor"))
