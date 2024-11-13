@@ -41,15 +41,16 @@ class ProxyCallProviderImpl(private val caller: ProxyCaller) : ProxyCallProvider
 
                 return@withContext coroutineScope { // Make sure that if sendCall
                     // fails then the continuation is also cancelled
-                    launch { caller.sendCall(call) }
+                    // coroutineScope does that for us
                     withTimeout(KNet.callTimeout) {
                         suspendCancellableCoroutine { cont ->
-                            cont.invokeOnCancellation {
-                                synchronized(responseHandlers) { responseHandlers.remove(id) }
-                            }
                             synchronized(responseHandlers) {
                                 responseHandlers[id] = ResponseHandler(interfaceName, functionName, cont)
                             }
+                            cont.invokeOnCancellation {
+                                synchronized(responseHandlers) { responseHandlers.remove(id) }
+                            }
+                            launch { caller.sendCall(call) }
                         }
                     }
                 }
