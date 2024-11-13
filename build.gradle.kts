@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "net.ultragrav.knet"
-version = "1.0.12"
+version = "1.1.0"
 
 repositories {
     mavenCentral()

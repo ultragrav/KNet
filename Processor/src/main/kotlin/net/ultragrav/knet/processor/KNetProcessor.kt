@@ -11,13 +11,32 @@ import net.ultragrav.knet.ProxiedInterface
 
 @OptIn(KspExperimental::class)
 class KNetProcessor(val environment: SymbolProcessorEnvironment) : SymbolProcessor {
+    private val meta = StringBuilder()
+        .appendLine("import net.ultragrav.knet.protocol.ProtocolSpec")
+        .appendLine("import net.ultragrav.knet.protocol.ProtocolClass")
+        .appendLine("import net.ultragrav.knet.protocol.ProtocolMethod")
+        .appendLine()
+        .appendLine("object KNetSpec {")
+        .appendLine("    @JvmField")
+        .appendLine("    val spec = ProtocolSpec(listOf(")
     private val visitor = ClassVisitor()
 
     override fun process(resolver: Resolver): List<KSAnnotated> {
         resolver.getSymbolsWithAnnotation(ProxiedInterface::class.qualifiedName!!)
             .filterIsInstance<KSClassDeclaration>()
             .forEach { it.accept(visitor, Unit) }
+
         return emptyList()
+    }
+
+    override fun finish() {
+        meta.appendLine("    ))")
+            .appendLine("}")
+        environment.codeGenerator.createNewFile(
+            dependencies = Dependencies(false),
+            packageName = "",
+            fileName = "KNetSpec"
+        ).write(meta.toString().toByteArray())
     }
 
     inner class ClassVisitor : KSVisitorVoid() {
@@ -60,6 +79,8 @@ class KNetProcessor(val environment: SymbolProcessorEnvironment) : SymbolProcess
                 return
             }
 
+            meta.appendLine("        ProtocolClass(\"${classDeclaration.qualifiedName!!.asString()}\", listOf(")
+
             val proxyFile = environment.codeGenerator.createNewFile(
                 dependencies = Dependencies(true, classDeclaration.containingFile!!),
                 packageName = classDeclaration.packageName.asString(),
@@ -92,7 +113,10 @@ class KNetProcessor(val environment: SymbolProcessorEnvironment) : SymbolProcess
                         }.joinToString(", ")
                     }))\n"
                 )
+
+                meta.appendLine("            ProtocolMethod(\"${function.simpleName.asString()}\", listOf(${function.parameters.joinToString(", ") { "\"${generateTypeString(it.type.resolve())}\"" }}), \"${returnType}\"),")
             }
+            meta.appendLine("        )),")
 
             val classStr = """
                 |package ${classDeclaration.packageName.asString()}     
