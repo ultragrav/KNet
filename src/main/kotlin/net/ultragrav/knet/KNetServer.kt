@@ -8,6 +8,7 @@ import io.netty.channel.ChannelInitializer
 import io.netty.channel.nio.NioEventLoopGroup
 import io.netty.channel.socket.SocketChannel
 import io.netty.channel.socket.nio.NioServerSocketChannel
+import kotlinx.coroutines.runBlocking
 import net.ultragrav.knet.compression.KNetLZ4FrameEncoder
 import net.ultragrav.knet.compression.KNetLZ4FrameDecoder
 import net.ultragrav.knet.packet.PacketHandler
@@ -16,8 +17,9 @@ import net.ultragrav.knet.packet.encoding.PacketEncoder
 import net.ultragrav.knet.proxy.CallHandlerMap
 import net.ultragrav.knet.proxy.ProxyCallHandlerConfig
 import net.ultragrav.knet.proxy.ProxyRegistrar
+import java.io.Closeable
 
-class KNetServer(val port: Int) : ProxyRegistrar {
+class KNetServer(val port: Int) : ProxyRegistrar, Closeable {
     private val bossGroup by lazy { NioEventLoopGroup() }
     private val workerGroup by lazy { NioEventLoopGroup() }
 
@@ -94,5 +96,9 @@ class KNetServer(val port: Int) : ProxyRegistrar {
 
     override fun <T> registerProxy(inter: Class<T>, proxy: ProxyCallHandler<T>, config: ProxyCallHandlerConfig) {
         proxies.registerProxy(inter, proxy, config)
+    }
+
+    override fun close() {
+        runBlocking { stop() }
     }
 }

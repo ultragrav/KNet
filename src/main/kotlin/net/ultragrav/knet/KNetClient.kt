@@ -6,6 +6,7 @@ import io.netty.channel.ChannelInitializer
 import io.netty.channel.nio.NioEventLoopGroup
 import io.netty.channel.socket.SocketChannel
 import io.netty.channel.socket.nio.NioSocketChannel
+import kotlinx.coroutines.runBlocking
 import net.ultragrav.knet.compression.KNetLZ4FrameEncoder
 import net.ultragrav.knet.compression.KNetLZ4FrameDecoder
 import net.ultragrav.knet.exception.DisconnectedException
@@ -17,9 +18,10 @@ import net.ultragrav.knet.proxy.CallHandlerMap
 import net.ultragrav.knet.proxy.ProxyCallHandlerConfig
 import net.ultragrav.knet.proxy.ProxyCaller
 import net.ultragrav.knet.proxy.ProxyRegistrar
+import java.io.Closeable
 import java.net.SocketAddress
 
-class KNetClient(val host: SocketAddress) : ProxyCaller(), ProxyRegistrar {
+class KNetClient(val host: SocketAddress) : ProxyCaller(), ProxyRegistrar, Closeable {
     private val clientGroup by lazy { NioEventLoopGroup() }
 
     var active = true
@@ -76,5 +78,9 @@ class KNetClient(val host: SocketAddress) : ProxyCaller(), ProxyRegistrar {
 
     override fun toString(): String {
         return "KNetClient($host)"
+    }
+
+    override fun close() {
+        runBlocking { shutdown() }
     }
 }
