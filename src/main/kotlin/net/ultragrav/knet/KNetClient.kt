@@ -21,7 +21,7 @@ import net.ultragrav.knet.proxy.ProxyRegistrar
 import java.io.Closeable
 import java.net.SocketAddress
 
-class KNetClient(val host: SocketAddress) : ProxyCaller(), ProxyRegistrar, Closeable {
+open class KNetClient(val host: SocketAddress) : ProxyCaller(), ProxyRegistrar, Closeable {
     private val clientGroup by lazy { NioEventLoopGroup() }
 
     var active = true
