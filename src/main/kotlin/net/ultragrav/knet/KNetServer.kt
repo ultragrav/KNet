@@ -18,6 +18,7 @@ import net.ultragrav.knet.proxy.CallHandlerMap
 import net.ultragrav.knet.proxy.ProxyCallHandlerConfig
 import net.ultragrav.knet.proxy.ProxyRegistrar
 import java.io.Closeable
+import java.nio.channels.FileChannel
 
 class KNetServer(val port: Int) : ProxyRegistrar, Closeable {
     private val bossGroup by lazy { NioEventLoopGroup() }
@@ -28,6 +29,10 @@ class KNetServer(val port: Int) : ProxyRegistrar, Closeable {
     lateinit var channel: Channel
 
     internal val proxies = CallHandlerMap()
+
+    var connectionProvider: (KNetServer, Channel) -> ServerConnection = { server, channel ->
+        ServerConnection(server, channel)
+    }
 
     val connected = mutableSetOf<ServerConnection>()
 
@@ -45,7 +50,7 @@ class KNetServer(val port: Int) : ProxyRegistrar, Closeable {
                             return
                         }
 
-                        val serverConnection = ServerConnection(this@KNetServer, ch)
+                        val serverConnection = connectionProvider(this@KNetServer, ch)
                         ch.pipeline().addLast(
                             KNetLZ4FrameEncoder(),
                             KNetLZ4FrameDecoder(),

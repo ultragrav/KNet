@@ -4,7 +4,7 @@ import io.netty.channel.Channel
 import net.ultragrav.knet.packet.packets.PacketProxyCall
 import net.ultragrav.knet.proxy.ProxyCaller
 
-class ServerConnection(val server: KNetServer, val channel: Channel) : ProxyCaller() {
+open class ServerConnection(val server: KNetServer, val channel: Channel) : ProxyCaller() {
 
     var attachment: Any? = null
 
