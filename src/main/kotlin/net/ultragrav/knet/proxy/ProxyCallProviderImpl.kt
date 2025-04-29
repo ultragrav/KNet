@@ -39,6 +39,8 @@ class ProxyCallProviderImpl(private val caller: ProxyCaller) : ProxyCallProvider
 
                 val call = PacketProxyCall(id, interfaceName, functionName, args)
 
+                caller.preSendCall(call)
+
                 return@withContext coroutineScope { // Make sure that if sendCall
                     // fails then the continuation is also cancelled
                     // coroutineScope does that for us

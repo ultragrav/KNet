@@ -7,7 +7,9 @@ abstract class ProxyCaller {
 
     val callProvider = ProxyCallProviderImpl(this)
 
+    open suspend fun preSendCall(call: PacketProxyCall) {}
     abstract suspend fun sendCall(call: PacketProxyCall)
+    open suspend fun preHandleCall(call: PacketProxyCall) {}
     abstract suspend fun handleCall(call: PacketProxyCall): ByteArray
 
     fun getProxy(clazz: Class<*>): Any {

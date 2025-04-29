@@ -26,6 +26,8 @@ internal class PacketHandler(private val caller: ProxyCaller) : SimpleChannelInb
                             .onFailure { e.printStackTrace(); it.printStackTrace() }
                     }
 
+                    caller.preHandleCall(msg)
+
                     val bytes = runCatching { caller.handleCall(msg) }
                         .onFailure { sendErr(it) }
                         .getOrNull() ?: return@launch
